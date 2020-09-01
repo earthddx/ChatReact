@@ -3,7 +3,7 @@ const express = require("express");
 const socketio = require("socket.io");
 const http = require("http");
 
-const { addUser, removeUser, getUser, getUsersInRoom } = require("./users.js");
+const { addUser, removeUser, getUser, getUsersInChannel } = require("./users.js");
 const router = require("./router");
 
 const PORT = process.env.PORT || 4000;
@@ -12,25 +12,27 @@ const app = express();
 const server = http.createServer(app);
 
 //create socket.io instance
-//https://socket.io/docs/#Using-with-Node-http-server
+//https://socket.io/docs/#Using-with-Node-http-server !!DEPRECIATED
+//go to https://socket.io/docs/#Minimal-working-example instead
 const io = socketio(server);
 io.on("connection", (socket) => {
-  socket.on("join", ({ name, room }, callback) => {
+  socket.on("join", ({ name, channel }, callback) => {
+    console.log("user connected");
     //retrieving data from client side
-    const { user, error } = addUser({ id: socket.id, name, room });
+    const { user, error } = addUser({ id: socket.id, name, channel });
 
     if (error) return callback(error);
 
     socket.emit("message", {
       //user: "admin",
-      text: `${user.name}, welcome to the room ${user.room}`,
+      text: `${user.name}, welcome to the channel ${user.channel}`,
     });
-    socket.broadcast.to(user.room).emit("message", {
+    socket.broadcast.to(user.channel).emit("message", {
      // user: "admin",
       text: `${user.name} has joined the chat!`,
     });
 
-    socket.join(user.room); //user gets inside of a room
+    socket.join(user.channel); //user gets inside of a channel
 
     callback(); //after 'join' is emitted, do
   });
@@ -38,7 +40,7 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", (message, callback) => {
     const user = getUser(socket.id);
 
-    io.to(user.room).emit("message", { user: user.name, text: message });
+    io.to(user.channel).emit("message", { user: user.name, text: message });
     callback();
   });
 
