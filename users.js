@@ -9,9 +9,10 @@ const addUser = ({ id, name, channel }) => {
   const existingUser = users.find(
     (user) => user.channel === channel && user.name === name
   );
+  if (!name || !channel) return { error: "Username and channel are required." };
   if (existingUser) {
     return {
-      error: "Username is taken",
+      error: "Username is taken.",
     };
   }
   const user = { id, name, channel };
@@ -29,8 +30,7 @@ const removeUser = (id) => {
 
 const getUser = (id) => users.find((user) => user.id === id);
 
-const getUsersInChannel = (channel) => {
+const getUsersInChannel = (channel) =>
   users.filter((user) => user.channel === channel);
-};
 
 module.exports = { addUser, removeUser, getUser, getUsersInChannel };
